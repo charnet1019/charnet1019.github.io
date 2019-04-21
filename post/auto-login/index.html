@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>shell实现对多台服务器免密登录 - sunday</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="charnet1019" /><meta name="description" content="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70" /><meta name="keywords" content="Hugo, theme, even" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.55.2 with even 4.0.0" />
+
+
+<link rel="canonical" href="http://www.3day.top/post/auto-login/" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<link href="/dist/even.c2a46f00.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.css" integrity="sha256-7TyXnr2YU040zfSP+rEcz29ggW4j56/ujTPwjMzyqFY=" crossorigin="anonymous">
+
+
+<meta property="og:title" content="shell实现对多台服务器免密登录" />
+<meta property="og:description" content="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://www.3day.top/post/auto-login/" />
+<meta property="article:published_time" content="2019-04-21T13:55:56&#43;08:00"/>
+<meta property="article:modified_time" content="2019-04-21T13:55:56&#43;08:00"/>
+
+<meta itemprop="name" content="shell实现对多台服务器免密登录">
+<meta itemprop="description" content="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70">
+
+
+<meta itemprop="datePublished" content="2019-04-21T13:55:56&#43;08:00" />
+<meta itemprop="dateModified" content="2019-04-21T13:55:56&#43;08:00" />
+<meta itemprop="wordCount" content="717">
+
+
+
+<meta itemprop="keywords" content="shell,免密," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="shell实现对多台服务器免密登录"/>
+<meta name="twitter:description" content="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">SunDay</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">SunDay</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/categories/">Categories</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">shell实现对多台服务器免密登录</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-04-21 </span>
+        <div class="post-category">
+            <a href="/categories/linux/"> linux </a>
+            <a href="/categories/%E8%BF%90%E7%BB%B4/"> 运维 </a>
+            </div>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> 次阅读 </span>
+      </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content always-active">
+    
+  </div>
+</div>
+    <div class="post-content">
+      <div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span><span class="lnt">105
+</span><span class="lnt">106
+</span><span class="lnt">107
+</span><span class="lnt">108
+</span><span class="lnt">109
+</span><span class="lnt">110
+</span><span class="lnt">111
+</span><span class="lnt">112
+</span><span class="lnt">113
+</span><span class="lnt">114
+</span><span class="lnt">115
+</span><span class="lnt">116
+</span><span class="lnt">117
+</span><span class="lnt">118
+</span><span class="lnt">119
+</span><span class="lnt">120
+</span><span class="lnt">121
+</span><span class="lnt">122
+</span><span class="lnt">123
+</span><span class="lnt">124
+</span><span class="lnt">125
+</span><span class="lnt">126
+</span><span class="lnt">127
+</span><span class="lnt">128
+</span><span class="lnt">129
+</span><span class="lnt">130
+</span><span class="lnt">131
+</span><span class="lnt">132
+</span><span class="lnt">133
+</span><span class="lnt">134
+</span><span class="lnt">135
+</span><span class="lnt">136
+</span><span class="lnt">137
+</span><span class="lnt">138
+</span><span class="lnt">139
+</span><span class="lnt">140
+</span><span class="lnt">141
+</span><span class="lnt">142
+</span><span class="lnt">143
+</span><span class="lnt">144
+</span><span class="lnt">145
+</span><span class="lnt">146
+</span><span class="lnt">147
+</span><span class="lnt">148
+</span><span class="lnt">149
+</span><span class="lnt">150
+</span><span class="lnt">151
+</span><span class="lnt">152
+</span><span class="lnt">153
+</span><span class="lnt">154
+</span><span class="lnt">155
+</span><span class="lnt">156
+</span><span class="lnt">157
+</span><span class="lnt">158
+</span><span class="lnt">159
+</span><span class="lnt">160
+</span><span class="lnt">161
+</span><span class="lnt">162
+</span><span class="lnt">163
+</span><span class="lnt">164
+</span><span class="lnt">165
+</span><span class="lnt">166
+</span><span class="lnt">167
+</span><span class="lnt">168
+</span><span class="lnt">169
+</span><span class="lnt">170
+</span><span class="lnt">171
+</span><span class="lnt">172
+</span><span class="lnt">173
+</span><span class="lnt">174
+</span><span class="lnt">175
+</span><span class="lnt">176
+</span><span class="lnt">177
+</span><span class="lnt">178
+</span><span class="lnt">179
+</span><span class="lnt">180
+</span><span class="lnt">181
+</span><span class="lnt">182
+</span><span class="lnt">183
+</span><span class="lnt">184
+</span><span class="lnt">185
+</span><span class="lnt">186
+</span><span class="lnt">187
+</span><span class="lnt">188
+</span><span class="lnt">189
+</span><span class="lnt">190
+</span><span class="lnt">191
+</span><span class="lnt">192
+</span><span class="lnt">193
+</span><span class="lnt">194
+</span><span class="lnt">195
+</span><span class="lnt">196
+</span><span class="lnt">197
+</span><span class="lnt">198
+</span><span class="lnt">199
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"><span class="cp">#!/bin/bash
+</span><span class="cp"></span><span class="c1">##########################################################</span>
+#
+<span class="c1"># Copyright (2017-10-21, )</span>
+#
+<span class="c1"># Author: charnet1019@163.com</span>
+<span class="c1"># Last modified: 2017-10-22 00:02</span>
+<span class="c1"># Description: 实现ssh免密登录</span>
+# 
+<span class="c1"># Tips: ssh服务端需设置如下参数解决连接慢拷贝失败的问题</span> 
+<span class="c1"># IgnoreRhosts yes</span> 
+<span class="c1"># GSSAPIAuthentication no</span> 
+<span class="c1"># UseDNS no</span>
+#
+<span class="c1">##########################################################</span>
+
+<span class="c1"># definition IP dictionary array</span>
+<span class="nb">declare</span> -A IPListDict
+
+<span class="nv">USER_NAME</span><span class="o">=</span><span class="s2">&#34;root&#34;</span>
+
+<span class="c1"># 主机IP地址和密码，每行一个主机</span>
+<span class="nv">IPListDict</span><span class="o">=(</span>
+<span class="o">[</span><span class="m">192</span>.168.2.3:22<span class="o">]=</span><span class="s2">&#34;secret&#34;</span>
+<span class="o">[</span><span class="m">192</span>.168.2.4:22018<span class="o">]=</span><span class="s2">&#34;secret&#34;</span>
+<span class="o">)</span>
+
+<span class="c1"># for ssh</span>
+<span class="nv">ssh_keygen</span><span class="o">=</span><span class="s2">&#34;/usr/bin/ssh-keygen&#34;</span>
+<span class="nv">ssh_key_type</span><span class="o">=</span><span class="s2">&#34;rsa&#34;</span>
+<span class="nv">ssh_pwd</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+<span class="nv">ssh_key_base_dir</span><span class="o">=</span>~/.ssh
+<span class="nv">ssh_pri_key</span><span class="o">=</span><span class="nv">$ssh_key_base_dir</span>/id_rsa
+<span class="nv">ssh_pub_key</span><span class="o">=</span><span class="nv">$ssh_key_base_dir</span>/id_rsa.pub
+<span class="nv">ssh_known_hosts</span><span class="o">=</span><span class="nv">$ssh_key_base_dir</span>/known_hosts
+<span class="nv">ssh_copy_id</span><span class="o">=</span><span class="s2">&#34;/usr/bin/ssh-copy-id&#34;</span>
+
+<span class="nv">DATETIME</span><span class="o">=</span><span class="sb">`</span>date <span class="s2">&#34;+%F %T&#34;</span><span class="sb">`</span>
+
+success<span class="o">()</span> <span class="o">{</span>
+<span class="nb">printf</span> <span class="s2">&#34;\r</span><span class="nv">$DATETIME</span><span class="s2"> [ \033[00;32mINFO\033[0m ]%s\n&#34;</span> <span class="s2">&#34;</span><span class="nv">$1</span><span class="s2">&#34;</span>
+<span class="o">}</span>
+
+warn<span class="o">()</span> <span class="o">{</span>
+<span class="nb">printf</span> <span class="s2">&#34;\r</span><span class="nv">$DATETIME</span><span class="s2"> [\033[0;33mWARNING\033[0m]%s\n&#34;</span> <span class="s2">&#34;</span><span class="nv">$1</span><span class="s2">&#34;</span>
+<span class="o">}</span>
+
+fail<span class="o">()</span> <span class="o">{</span>
+<span class="nb">printf</span> <span class="s2">&#34;\r</span><span class="nv">$DATETIME</span><span class="s2"> [ \033[0;31mERROR\033[0m ]%s\n&#34;</span> <span class="s2">&#34;</span><span class="nv">$1</span><span class="s2">&#34;</span>
+<span class="o">}</span>
+
+usage<span class="o">()</span> <span class="o">{</span>
+<span class="nb">echo</span> <span class="s2">&#34;Usage: </span><span class="si">${</span><span class="nv">0</span><span class="p">##*/</span><span class="si">}</span><span class="s2"> {info|warn|err} MSG&#34;</span>
+<span class="o">}</span>
+
+log<span class="o">()</span> <span class="o">{</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nv">$#</span> -lt <span class="m">2</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+log err <span class="s2">&#34;Not enough arguments [</span><span class="nv">$#</span><span class="s2">] to log.&#34;</span>
+<span class="k">fi</span>
+
+<span class="nv">__LOG_PRIO</span><span class="o">=</span><span class="s2">&#34;</span><span class="nv">$1</span><span class="s2">&#34;</span>
+<span class="nb">shift</span>
+<span class="nv">__LOG_MSG</span><span class="o">=</span><span class="s2">&#34;</span><span class="nv">$*</span><span class="s2">&#34;</span>
+
+<span class="k">case</span> <span class="s2">&#34;</span><span class="si">${</span><span class="nv">__LOG_PRIO</span><span class="si">}</span><span class="s2">&#34;</span> in
+crit<span class="o">)</span> <span class="nv">__LOG_PRIO</span><span class="o">=</span><span class="s2">&#34;CRIT&#34;</span><span class="p">;;</span>
+err<span class="o">)</span> <span class="nv">__LOG_PRIO</span><span class="o">=</span><span class="s2">&#34;ERROR&#34;</span><span class="p">;;</span>
+warn<span class="o">)</span> <span class="nv">__LOG_PRIO</span><span class="o">=</span><span class="s2">&#34;WARNING&#34;</span><span class="p">;;</span>
+info<span class="o">)</span> <span class="nv">__LOG_PRIO</span><span class="o">=</span><span class="s2">&#34;INFO&#34;</span><span class="p">;;</span>
+debug<span class="o">)</span> <span class="nv">__LOG_PRIO</span><span class="o">=</span><span class="s2">&#34;DEBUG&#34;</span><span class="p">;;</span>
+<span class="k">esac</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">&#34;</span><span class="si">${</span><span class="nv">__LOG_PRIO</span><span class="si">}</span><span class="s2">&#34;</span> <span class="o">=</span> <span class="s2">&#34;INFO&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+success <span class="s2">&#34; </span><span class="nv">$__LOG_MSG</span><span class="s2">&#34;</span>
+<span class="k">elif</span> <span class="o">[</span> <span class="s2">&#34;</span><span class="si">${</span><span class="nv">__LOG_PRIO</span><span class="si">}</span><span class="s2">&#34;</span> <span class="o">=</span> <span class="s2">&#34;WARNING&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+warn <span class="s2">&#34; </span><span class="nv">$__LOG_MSG</span><span class="s2">&#34;</span>
+<span class="k">elif</span> <span class="o">[</span> <span class="s2">&#34;</span><span class="si">${</span><span class="nv">__LOG_PRIO</span><span class="si">}</span><span class="s2">&#34;</span> <span class="o">=</span> <span class="s2">&#34;ERROR&#34;</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+fail <span class="s2">&#34; </span><span class="nv">$__LOG_MSG</span><span class="s2">&#34;</span>
+<span class="k">else</span>
+   usage
+<span class="k">fi</span>
+<span class="o">}</span>
+
+command_exists<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">command</span> -v <span class="s2">&#34;</span><span class="nv">$@</span><span class="s2">&#34;</span> &gt; /dev/null <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span>
+<span class="o">}</span>
+
+install_expect<span class="o">()</span> <span class="o">{</span>
+yum -y install expect <span class="p">&amp;</span>&gt; /dev/null
+<span class="o">}</span>
+
+check_expect<span class="o">()</span> <span class="o">{</span>
+<span class="k">if</span> ! command_exists expect<span class="p">;</span> <span class="k">then</span>
+log warn <span class="s2">&#34;No expect command and try to install, please wait...&#34;</span>
+install_expect
+<span class="k">if</span> ! command_exists expect<span class="p">;</span> <span class="k">then</span>
+log err <span class="s2">&#34;Installation failed, please install the expect command manually.&#34;</span>
+<span class="nb">exit</span> <span class="m">1</span>
+<span class="k">else</span>
+log info <span class="s2">&#34;Installation successed.&#34;</span>
+<span class="k">fi</span>
+<span class="k">fi</span>
+<span class="o">}</span>
+
+get_cipher<span class="o">()</span> <span class="o">{</span>
+<span class="nb">local</span> <span class="nv">IP</span><span class="o">=</span><span class="nv">$1</span>
+<span class="nb">local</span> <span class="nv">PORT</span><span class="o">=</span><span class="nv">$2</span>
+
+<span class="k">for</span> key in <span class="si">${</span><span class="p">!IPListDict[@]</span><span class="si">}</span><span class="p">;</span> <span class="k">do</span>
+<span class="k">if</span> <span class="o">[[</span> X<span class="s2">&#34;</span><span class="nv">$IP</span><span class="s2">:</span><span class="nv">$PORT</span><span class="s2">&#34;</span> <span class="o">==</span> X<span class="s2">&#34;</span><span class="nv">$key</span><span class="s2">&#34;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+<span class="nv">PASSWORD</span><span class="o">=</span><span class="s2">&#34;</span><span class="si">${</span><span class="nv">IPListDict</span><span class="p">[</span><span class="nv">$key</span><span class="p">]</span><span class="si">}</span><span class="s2">&#34;</span>
+<span class="k">fi</span>
+<span class="k">done</span>
+<span class="o">}</span>
+
+is_exist<span class="o">()</span> <span class="o">{</span>
+<span class="nb">local</span> <span class="nv">IP</span><span class="o">=</span><span class="nv">$1</span>
+
+<span class="k">if</span> <span class="sb">`</span>grep -q <span class="s2">&#34;</span><span class="nv">$IP</span><span class="s2">&#34;</span> <span class="si">${</span><span class="nv">ssh_known_hosts</span><span class="si">}</span><span class="sb">`</span><span class="p">;</span> <span class="k">then</span>
+<span class="k">return</span> <span class="m">0</span>
+<span class="k">fi</span>
+
+<span class="k">return</span> <span class="m">1</span>
+<span class="o">}</span>
+
+del_exist_host<span class="o">()</span> <span class="o">{</span>
+<span class="nb">local</span> <span class="nv">IP</span><span class="o">=</span><span class="nv">$1</span>
+
+sed -i <span class="s2">&#34;/</span><span class="nv">$IP</span><span class="s2">/d&#34;</span> <span class="si">${</span><span class="nv">ssh_known_hosts</span><span class="si">}</span>
+<span class="o">}</span>
+
+generate_ssh_key<span class="o">()</span> <span class="o">{</span>
+   <span class="k">if</span> <span class="o">[</span> ! -f <span class="si">${</span><span class="nv">ssh_pri_key</span><span class="si">}</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+   <span class="si">${</span><span class="nv">ssh_keygen</span><span class="si">}</span> -t <span class="si">${</span><span class="nv">ssh_key_type</span><span class="si">}</span> -P <span class="s2">&#34;</span><span class="si">${</span><span class="nv">ssh_pwd</span><span class="si">}</span><span class="s2">&#34;</span> -f <span class="si">${</span><span class="nv">ssh_pri_key</span><span class="si">}</span> <span class="p">&amp;</span>&gt; /dev/null
+   <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -eq <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+   log info <span class="s2">&#34;Generated ssh key successfully.&#34;</span>
+   <span class="k">else</span>
+   log err <span class="s2">&#34;Generated ssh key failed.&#34;</span>
+   <span class="k">fi</span>
+   <span class="k">else</span>
+   <span class="nb">echo</span> <span class="s2">&#34;y&#34;</span> <span class="p">|</span> <span class="si">${</span><span class="nv">ssh_keygen</span><span class="si">}</span> -t <span class="si">${</span><span class="nv">ssh_key_type</span><span class="si">}</span> -P <span class="s2">&#34;</span><span class="si">${</span><span class="nv">ssh_pwd</span><span class="si">}</span><span class="s2">&#34;</span> -f <span class="si">${</span><span class="nv">ssh_pri_key</span><span class="si">}</span> <span class="p">&amp;</span>&gt; /dev/null
+   <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -eq <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+   log info <span class="s2">&#34;Generated ssh key successfully.&#34;</span>
+   <span class="k">else</span>
+   log err <span class="s2">&#34;Generated ssh key failed.&#34;</span>
+   <span class="k">fi</span>
+   <span class="k">fi</span>
+<span class="o">}</span>
+
+copy_pub_key<span class="o">()</span> <span class="o">{</span>
+   <span class="nb">local</span> <span class="nv">IP</span><span class="o">=</span><span class="nv">$1</span>
+   <span class="nb">local</span> <span class="nv">PORT</span><span class="o">=</span><span class="nv">$2</span>
+
+   <span class="k">if</span> <span class="o">[</span> -f <span class="si">${</span><span class="nv">ssh_known_hosts</span><span class="si">}</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+   is_exist <span class="nv">$IP</span>
+   <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -eq <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+   del_exist_host <span class="nv">$IP</span>
+   <span class="k">fi</span>
+   <span class="k">fi</span>
+
+   get_cipher <span class="nv">$IP</span> <span class="nv">$PORT</span>
+
+   expect -c <span class="s">&lt;&lt;- EOF &amp;&gt; /dev/null &#34;
+</span><span class="s">   spawn $ssh_copy_id -i &#34;$ssh_pub_key&#34; -p $PORT $USER_NAME@$IP
+</span><span class="s">   expect {
+</span><span class="s">\&#34;(yes/no)?\&#34; {
+</span><span class="s">send \&#34;yes\r\&#34;
+</span><span class="s">expect {
+</span><span class="s">&#34;*assword&#34; {
+</span><span class="s">send \&#34;$PASSWORD\r\&#34;
+</span><span class="s">}
+</span><span class="s">}
+</span><span class="s">}
+</span><span class="s">
+</span><span class="s">&#34;*assword*&#34; {
+</span><span class="s">send \&#34;$PASSWORD\r\&#34;
+</span><span class="s">}
+</span><span class="s">expect eof
+</span><span class="s">}
+</span><span class="s">catch wait retVal
+</span><span class="s">exit [lindex \$retVal 3]&#34;
+</span><span class="s">EOF</span>
+   <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> -eq <span class="m">0</span> <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+   log info <span class="s2">&#34;Copy the ssh pub key to </span><span class="nv">$IP</span><span class="s2"> successfully.&#34;</span>
+   <span class="k">else</span>
+   log err <span class="s2">&#34;Copy the ssh pub key to </span><span class="nv">$IP</span><span class="s2"> failed.&#34;</span>
+   <span class="k">fi</span>
+<span class="o">}</span>
+
+
+<span class="c1"># main</span>
+check_expect
+generate_ssh_key
+<span class="k">for</span> element in <span class="si">${</span><span class="p">!IPListDict[@]</span><span class="si">}</span><span class="p">;</span> <span class="k">do</span>
+<span class="nv">IP</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$element</span><span class="s2">&#34;</span> <span class="p">|</span> cut -d<span class="s1">&#39;:&#39;</span> -f1<span class="sb">`</span>
+<span class="nv">PORT</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="s2">&#34;</span><span class="nv">$element</span><span class="s2">&#34;</span> <span class="p">|</span> cut -d<span class="s1">&#39;:&#39;</span> -f2<span class="sb">`</span>
+
+copy_pub_key <span class="nv">$IP</span> <span class="nv">$PORT</span>
+<span class="k">done</span></pre></td></tr></table>
+</div>
+</div>
+    </div>
+
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">charnet1019</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+        2019-04-21
+        
+    </span>
+  </p>
+  
+  
+</div>
+<footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/shell/">shell</a>
+          <a href="/tags/%E5%85%8D%E5%AF%86/">免密</a>
+          </div>
+      <nav class="post-nav">
+        <a class="prev" href="/post/even-preview/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Theme preview</span>
+            <span class="prev-text nav-mobile">上一篇</span>
+          </a>
+        <a class="next" href="/post/hidden-post/">
+            <span class="next-text nav-default">This is a hidden post.</span>
+            <span class="next-text nav-mobile">下一篇</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:charnet1019@163.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://github.com/charnet1019" class="iconfont icon-github" title="github"></a>
+  <a href="http://www.3day.top/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    由 <a class="hexo-link" href="https://gohugo.io">Hugo</a> 强力驱动
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    主题 - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> 本站总访问量 <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> 次 </span>
+      <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> 本站总访客数 <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> 人 </span>
+  </div>
+
+  <span class="copyright-year">
+    &copy; 
+    2017 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">charnet1019</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/slideout@1.0.1/dist/slideout.min.js" integrity="sha256-t+zJ/g8/KXIJMjSVQdnibt4dlaDxc9zXr/9oNPeWqdg=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.1.20/dist/jquery.fancybox.min.js" integrity="sha256-XVLffZaxoWfGUEbdzuLi7pwaUJv1cecsQJQqGLe7axY=" crossorigin="anonymous"></script>
+<script type="text/javascript" src="/dist/even.26188efa.min.js"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
