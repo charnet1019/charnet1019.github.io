@@ -6,10 +6,19 @@
     <description>Recent content in Categories on sunday</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 21 Oct 2017 13:55:56 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 27 Apr 2018 13:55:56 +0800</lastBuildDate>
     
 	<atom:link href="http://www.3day.top/categories/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>gitlab</title>
+      <link>http://www.3day.top/categories/gitlab/</link>
+      <pubDate>Fri, 27 Apr 2018 13:55:56 +0800</pubDate>
+      
+      <guid>http://www.3day.top/categories/gitlab/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>linux</title>
