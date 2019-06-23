@@ -51,7 +51,7 @@
 
 <meta itemprop="datePublished" content="2018-04-27T13:55:56&#43;08:00" />
 <meta itemprop="dateModified" content="2018-04-27T13:55:56&#43;08:00" />
-<meta itemprop="wordCount" content="111">
+<meta itemprop="wordCount" content="230">
 
 
 
@@ -156,9 +156,8 @@
     <div class="post-content">
       
 
-<p>研发突然告知git通过ssh方式无法提交代码，且添加SSH key时web页面提示500错误，查看gitlab服务器日志报如下错误:</p>
-
-<p><img src="https://github.com/charnet1019/charnet1019.github.io/blob/master/images/gitlab/gitlab_error.png" alt="image" /></p>
+<p>研发突然告知git通过ssh方式无法提交代码，且添加SSH key时web页面提示500错误，查看gitlab服务器日志报如下错误:
+<img src="https://github.com/charnet1019/charnet1019.github.io/raw/master/images/gitlab/gitlab_error.png" alt="image" /></p>
 
 <h3 id="错误原因">错误原因:</h3>
 
@@ -169,6 +168,27 @@
 <ol>
 <li>连接pgsql数据库
 $psql -h /var/opt/gitlab/postgresql -d gitlabhq_production</li>
+<li>根据错误信息定位哪张表的toast有问题<br />
+<img src="https://github.com/charnet1019/charnet1019.github.io/raw/master/images/gitlab/location_error.png" alt="image" /></li>
+<li>修复有问题的表
+gitlabhq_production=#REINDEX table pg_toast.pg_toast_2619
+gitlabhq_production=#REINDEX table pg_statistic;
+gitlabhq_production=#VACUUM ANALYZE pg_statistic;</li>
+<li>执行如下定位表中损坏的数据行
+DO $$
+declare
+    v_rec record;
+BEGIN
+    for v_rec in SELECT * FROM pg_statistic loop
+        raise notice &lsquo;Parameter is:%&lsquo;, v_rec.ctid;
+        raise notice &lsquo;Parameteris:&lsquo;%, v_rec;
+    end loop;
+END;
+$$
+LANGUAGE plpgsql;</li>
+<li>删除第4步中定位的错误记录
+gitlabhq_production=#delete from pg_statistic where ctid=&lsquo;(50,3)&rsquo;;</li>
+<li>重复执行第4，5步直至全部有问题的记录被清除</li>
 </ol>
 
     </div>
